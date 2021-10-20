@@ -6,6 +6,9 @@
     2. Klasse                   => versch. Startwerte
 */
 
+/*  #HOW TO COMPILE#
+    gcc main.c -lncurses
+*/
 typedef struct Room {
     int yPos;
     int xPos;
@@ -92,7 +95,7 @@ int drawRoom(Room* room) {
             if((i == 0) || (i == room->height-1)) {
                 mvprintw(room->yPos+i, room->xPos+j, "-"); 
             } else {
-                if(((j == 0) || (j == room->width-1))) {
+                if((j == 0) || (j == room->width-1)) {
                     mvprintw(room->yPos+i, room->xPos+j, "|");
                 } else {
                     mvprintw(room->yPos+i, room->xPos+j, ".");
@@ -153,6 +156,7 @@ int handleInput(int input, Player* player) {
 
     checkPostion(newY, newX, player);
 
+    return 0;
 }
 
 //check what is at next position
@@ -166,6 +170,8 @@ int checkPostion(int newY, int newX, Player* player) {
             move(player->yPos, player->xPos);
             break;
     }
+
+    return 0;
 }
 
 int playerMove(int y, int x, Player* player) {
@@ -176,4 +182,6 @@ int playerMove(int y, int x, Player* player) {
     
     mvprintw(player->yPos, player->xPos, player->symbol);
     move(player->yPos, player->xPos);
+
+    return 0;
 }
