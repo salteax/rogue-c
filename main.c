@@ -9,6 +9,9 @@
 /*  #HOW TO COMPILE#
     gcc main.c -lncurses
 */
+
+//test
+
 typedef struct Room {
     int yPos;
     int xPos;
