@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <ncurses.h>
+#include <time.h>
 
 /*  #IDEEN#
     1. Player customization     => Farbe, Name, Symbol (aka Skin)
@@ -10,18 +11,21 @@
     gcc main.c -lncurses
 */
 
-//test
+typedef struct Position {
+    int x;
+    int y;
+} Position;
 
 typedef struct Room {
-    int yPos;
-    int xPos;
+    Position position;
     int height;
     int width;
+
+    Position doors[4];
 } Room;
 
 typedef struct Player {
-    int yPos;
-    int xPos;
+    Position position;
     int health;
     char* symbol;
     //Room* room;
@@ -47,7 +51,7 @@ int main() {
     player = playerSetup();
 
     //Game loop
-    while((ch = getch())!= 'q') {
+    while((ch = getch()) != 'q') {
         handleInput(ch, player);
     }
     endwin();   //ends ncurses sesion after exiting
@@ -60,6 +64,8 @@ int screenSetup() {
     printw("Hello World!");
     noecho();
     refresh();
+
+    srand(time(NULL));
 
     return 0;
 }
@@ -83,10 +89,24 @@ Room * createRoom(int y, int x, int height, int width) {
     Room* newRoom;
     newRoom = malloc(sizeof(Room));
 
-    newRoom->yPos = y;
-    newRoom->xPos = x;
+    newRoom->position.y = y;
+    newRoom->position.x = x;
     newRoom->height = height;
     newRoom->width = width;
+
+    //TODO: Türen variabel (1-4)
+    //top
+    newRoom->doors[0].y = newRoom->position.y;
+    newRoom->doors[0].x = rand() % (width - 2) + newRoom->position.x + 1;
+    //bottom
+    newRoom->doors[1].y = newRoom->position.y + newRoom->height - 1;
+    newRoom->doors[1].x = rand() % (width - 2) + newRoom->position.x + 1;
+    //left
+    newRoom->doors[2].y = rand() % (height - 2) + newRoom->position.y + 1;
+    newRoom->doors[2].x = newRoom->position.x;
+    //right
+    newRoom->doors[3].y = rand() % (height - 2) + newRoom->position.y + 1;
+    newRoom->doors[3].x = newRoom->position.x + width - 1;
 
     return newRoom;
 }
@@ -96,15 +116,20 @@ int drawRoom(Room* room) {
     for(int i = 0; i < room->height; i++) {
         for(int j = 0; j < room->width; j++) {
             if((i == 0) || (i == room->height-1)) {
-                mvprintw(room->yPos+i, room->xPos+j, "-"); 
+                mvprintw(room->position.y+i, room->position.x+j, "-"); 
             } else {
                 if((j == 0) || (j == room->width-1)) {
-                    mvprintw(room->yPos+i, room->xPos+j, "|");
+                    mvprintw(room->position.y+i, room->position.x+j, "|");
                 } else {
-                    mvprintw(room->yPos+i, room->xPos+j, ".");
+                    mvprintw(room->position.y+i, room->position.x+j, ".");
                 }
             }
         }
+    }
+
+    //TODO: das muss später variabel sein mit 1-4 türen
+    for(int i = 0; i < 4; i++) { 
+        mvprintw(room->doors[i].y, room->doors[i].x, "+");
     }
 
     return 0;
@@ -114,12 +139,12 @@ Player* playerSetup() {
     Player* newPlayer;
     newPlayer = malloc(sizeof(Player));
 
-    newPlayer->yPos = 14;
-    newPlayer->xPos = 14;
+    newPlayer->position.y = 14;
+    newPlayer->position.x = 14;
     newPlayer->health = 20;
     newPlayer->symbol = "@";
 
-    playerMove(newPlayer->yPos, newPlayer->xPos, newPlayer);
+    playerMove(newPlayer->position.y, newPlayer->position.x, newPlayer);
 
     return newPlayer; 
 }
@@ -132,26 +157,26 @@ int handleInput(int input, Player* player) {
         //move up
         case 'w':
         case 'W':
-            newY = player->yPos-1;
-            newX = player->xPos;
+            newY = player->position.y-1;
+            newX = player->position.x;
             break;
         //move down
         case 's':
         case 'S':
-            newY = player->yPos+1;
-            newX = player->xPos;
+            newY = player->position.y+1;
+            newX = player->position.x;
             break;
         //move left
         case 'a':
         case 'A':
-            newY = player->yPos;
-            newX = player->xPos-1;
+            newY = player->position.y;
+            newX = player->position.x-1;
             break;
         //move right
         case 'd':
         case 'D':
-            newY = player->yPos;
-            newX = player->xPos+1;
+            newY = player->position.y;
+            newX = player->position.x+1;
             break;
         default:
             break;
@@ -170,7 +195,7 @@ int checkPostion(int newY, int newX, Player* player) {
             playerMove(newY, newX, player);
             break;
         default:
-            move(player->yPos, player->xPos);
+            move(player->position.y, player->position.x);
             break;
     }
 
@@ -178,13 +203,13 @@ int checkPostion(int newY, int newX, Player* player) {
 }
 
 int playerMove(int y, int x, Player* player) {
-    mvprintw(player->yPos, player->xPos, ".");
+    mvprintw(player->position.y, player->position.x, ".");
     
-    player->yPos = y;
-    player->xPos = x;
+    player->position.y = y;
+    player->position.x = x;
     
-    mvprintw(player->yPos, player->xPos, player->symbol);
-    move(player->yPos, player->xPos);
+    mvprintw(player->position.y, player->position.x, player->symbol);
+    move(player->position.y, player->position.x);
 
     return 0;
 }
