@@ -21,7 +21,7 @@ typedef struct Room {
     int height;
     int width;
 
-    Position doors[4];
+    Position** doors;
 } Room;
 
 typedef struct Player {
@@ -35,6 +35,7 @@ int screenSetup();
 Room** mapSetup();
 Room* createRoom(int y, int x, int height, int width);
 int drawRoom(Room* room);
+int connectDoors(Position* doorOne, Position* doorTwo);
 Player* playerSetup();
 int handleInput(int input, Player* player);
 int checkPostion(int newY, int newX, Player* player);
@@ -82,10 +83,12 @@ Room** mapSetup() {
     drawRoom(rooms[1]);
     drawRoom(rooms[2]);
 
+    connectDoors(rooms[0]->doors[3], rooms[2]->doors[1]);
+
     return 0;
 }
 
-Room * createRoom(int y, int x, int height, int width) {
+Room* createRoom(int y, int x, int height, int width) {
     Room* newRoom;
     newRoom = malloc(sizeof(Room));
 
@@ -94,19 +97,25 @@ Room * createRoom(int y, int x, int height, int width) {
     newRoom->height = height;
     newRoom->width = width;
 
+    newRoom->doors = malloc(sizeof(Position) * 4);
+
     //TODO: Türen variabel (1-4)
     //top
-    newRoom->doors[0].y = newRoom->position.y;
-    newRoom->doors[0].x = rand() % (width - 2) + newRoom->position.x + 1;
-    //bottom
-    newRoom->doors[1].y = newRoom->position.y + newRoom->height - 1;
-    newRoom->doors[1].x = rand() % (width - 2) + newRoom->position.x + 1;
+    newRoom->doors[0] = malloc(sizeof(Position));
+    newRoom->doors[0]->y = newRoom->position.y;
+    newRoom->doors[0]->x = rand() % (width - 2) + newRoom->position.x + 1;
     //left
-    newRoom->doors[2].y = rand() % (height - 2) + newRoom->position.y + 1;
-    newRoom->doors[2].x = newRoom->position.x;
+    newRoom->doors[1] = malloc(sizeof(Position));
+    newRoom->doors[1]->y = rand() % (height - 2) + newRoom->position.y + 1;
+    newRoom->doors[1]->x = newRoom->position.x;
+     //bottom
+    newRoom->doors[2] = malloc(sizeof(Position));
+    newRoom->doors[2]->y = newRoom->position.y + newRoom->height - 1;
+    newRoom->doors[2]->x = rand() % (width - 2) + newRoom->position.x + 1;
     //right
-    newRoom->doors[3].y = rand() % (height - 2) + newRoom->position.y + 1;
-    newRoom->doors[3].x = newRoom->position.x + width - 1;
+    newRoom->doors[3] = malloc(sizeof(Position));
+    newRoom->doors[3]->y = rand() % (height - 2) + newRoom->position.y + 1;
+    newRoom->doors[3]->x = newRoom->position.x + width - 1;
 
     return newRoom;
 }
@@ -129,7 +138,39 @@ int drawRoom(Room* room) {
 
     //TODO: das muss später variabel sein mit 1-4 türen
     for(int i = 0; i < 4; i++) { 
-        mvprintw(room->doors[i].y, room->doors[i].x, "+");
+        mvprintw(room->doors[i]->y, room->doors[i]->x, "+");
+    }
+
+    return 0;
+}
+
+int connectDoors(Position* doorOne, Position* doorTwo) {
+    Position temp;
+    Position previous;
+
+    temp.x = doorOne->x;
+    temp.y = doorOne->y;
+
+    //andere Idee entfernung x x dann hälfte, hoch oder runter gehen differenz y und y dann weiter nach x
+
+    while(1) {
+        if((abs((temp.x - 1) - doorTwo->x) < abs(temp.x - doorTwo->x)) && (mvinch(temp.y, temp.x - 1) == ' ')) {          //step left
+            mvprintw(temp.y, temp.x - 1, "#");
+            temp.x = temp.x - 1;
+        } else if((abs((temp.x + 1) - doorTwo->x) < abs(temp.x - doorTwo->x)) && (mvinch(temp.y, temp.x + 1) == ' ')) {   //step right
+            mvprintw(temp.y, temp.x + 1, "#");
+            temp.x = temp.x + 1;
+        } else if((abs((temp.y + 1) - doorTwo->y) < abs(temp.y - doorTwo->y)) && (mvinch(temp.y + 1, temp.x) == ' ')) {   //step down
+            mvprintw(temp.y + 1, temp.x, "#");
+            temp.y = temp.y + 1;
+        } else if((abs((temp.y - 1) - doorTwo->y) < abs(temp.y - doorTwo->y)) && (mvinch(temp.y - 1, temp.x) == ' ')) {   //step down
+            mvprintw(temp.y - 1, temp.x, "#");
+            temp.y = temp.y - 1;
+        } else {
+            return 1;   // exit code change failure
+        }
+
+        getch();
     }
 
     return 0;
@@ -192,6 +233,8 @@ int checkPostion(int newY, int newX, Player* player) {
     int space;
     switch(mvinch(newY, newX)) {
         case '.':
+        case '+':
+        case '#':
             playerMove(newY, newX, player);
             break;
         default:
