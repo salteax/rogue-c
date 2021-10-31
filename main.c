@@ -83,7 +83,8 @@ Room** mapSetup() {
     drawRoom(rooms[1]);
     drawRoom(rooms[2]);
 
-    connectDoors(rooms[0]->doors[3], rooms[2]->doors[1]);
+    //connectDoors(rooms[0]->doors[3], rooms[2]->doors[1]);
+    connectDoors(rooms[2]->doors[1], rooms[0]->doors[3]);
 
     return 0;
 }
@@ -152,6 +153,33 @@ int connectDoors(Position* doorOne, Position* doorTwo) {
     temp.y = doorOne->y;
 
     //andere Idee entfernung x x dann hälfte, hoch oder runter gehen differenz y und y dann weiter nach x
+    //TODO: aboluter müll muss evtl. verbessert werden bzw fertig gemacht werden
+    /*int diffPosX, diffPosY;
+    diffPosX = doorOne->x - doorTwo->x;
+    diffPosY = doorOne->y - doorTwo->y;
+    printf("diffPosX: %d, diffPosY: %d\n", diffPosX, diffPosY);
+    int i;
+    if(diffPosX > 0) {
+        for(i = 1; i <= (diffPosX/2); i++) {
+            mvprintw(doorOne->y, doorOne->x - i, "#");
+            diffPosX--;
+        }
+        if(diffPosY > 0) {
+            for(i = 1; i <= diffPosY; i++) {
+                mvprintw(doorOne->y-i, doorOne->x - (diffPosX/2) - 1, "#");
+            }
+            for(i = 1; i <= (diffPosX/2); i++) {
+                mvprintw(doorOne->y-diffPosY, doorOne->x - (diffPosX/2) - i, "#");
+                diffPosX--;
+            }
+        } else {
+
+        }  
+        
+    } else {
+        //dasdas
+    }
+    */
 
     while(1) {
         if((abs((temp.x - 1) - doorTwo->x) < abs(temp.x - doorTwo->x)) && (mvinch(temp.y, temp.x - 1) == ' ')) {          //step left
@@ -170,7 +198,7 @@ int connectDoors(Position* doorOne, Position* doorTwo) {
             return 1;   // exit code change failure
         }
 
-        getch();
+        //getch();
     }
 
     return 0;
